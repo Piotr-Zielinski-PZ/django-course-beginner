@@ -52,7 +52,7 @@ class UserProfile(AbstractBaseUser,PermissionsMixin):                           
     objects = UserProfileManager()
 
     USERNAME_FIELD = 'email'                                                    # overwriting a default username with previously created email, so when logging we neet to use email, not name
-    REQUIRED_FIELD = ['name']                                                   # is says that the email is required (from line above) just like name
+    REQUIRED_FIELDS = ['name']                                                   # is says that the email is required (from line above) just like name
 
 
 # next we will create functions which are used for django to interact with our
