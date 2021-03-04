@@ -2,6 +2,7 @@ from rest_framework.views import APIView                                        
 from rest_framework.response import Response                                    # Response object returns responses from APIView so when we call the APIView we expect the standard Response object to be returned
 from rest_framework import status                                               # the status object from rest framework is a list of handy HTTP codes that we can use when returning responses from our API... we use them in POST handler
 from profiles_api import serializer                                             # serializers is the module that we created in our profiles API project... by this we're going to tell our API view what data to expect when making post, put and patch requests
+from rest_framework import viewsets
 
 
 # now we create the APIView class:
@@ -83,3 +84,69 @@ class HelloApiView(APIView):                                                    
     def delete(self, request, pk=None):                                         # DELETE FUNCTION - used for deleting objects in the database
         """Delete object"""
         return Response({'method': 'DELETE'})
+
+
+
+
+
+
+
+class HelloViewSet(viewsets.ViewSet):                                           # functions that we add to a view set are a little bit different from the functions we've added to an API view
+    """Test API ViewSet"""                                                      # for a view set we add functions that represent actions that we would perform on a typical API
+
+
+    serializer_class = serializer.HelloSerializer                               # we're adding the serializer class and we can use the same serializer that we created
+                                                                                # for our API view with the name field we can share the same serializer for both
+                                                                                # of our view sets and we specify the serializer in our view set the same way as we do for our API view
+
+
+    def list(self, request):                                                    # LIST FUNCTION - typically a HTTP GET to the root of the endpoint linked
+        """Return a hello message"""                                            # to our view set; so it lists a set of objects that the view set represents
+        a_viewset = [
+            'Uses actions (list, create, retrive, update, partial_update)',
+            'Automatically maps to URLs using Routers',
+            'Provides more functionality with less code',
+        ]
+
+        return Response({'message':'Hello!', 'a_viewset': a_viewset})
+
+
+    def create(self, request):
+        """Create a new hello message"""
+        serializer = self.serializer_class(data=request.data)                   # we pass in the data that was made in the request and we passed that
+                                                                                # in as the data attribute of our serializer which we retrieve using the serializer class
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')                        # we retrieve the name field
+            message = f'hello {name}!'
+            return Response({'message': message})
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def retrieve (self, request, pk=None):                                      # RETIVE FUNCTION - is for retrieving a specific object in our view
+        """Handle getting an object by its ID"""                                # set so you would typically pass in a primary key ID to the URL in
+                                                                                # the request and that will return or retrieve the object with that primary key ID
+        return Response({'http_method': 'GET'})
+
+    def update(self, request, pk=None):                                         # UPDATE FUNCTION - maps to a HTTP put on the primary key item of our view set
+        """Handle updating an object"""
+        return Response({'http_method': 'PUT'})
+
+    def partial_update(self, request, pk=None):
+        """Handle updating part of an object"""
+        return Response ({'http_method': 'PATCH'})
+
+    def destroy(self, request, pk=None):                                        # if you wish to remove an object then you would call HTTP delete
+        """Handle removing an object"""                                         # on our view set which would then call this destroy function and run the
+        return Response({'http_method': 'DELETE'})
+
+
+
+
+# rest framework browsable API knows that our
+# view set is going to accept a post with a name because we assigned the
+# serializer class to the top of our view set and it looks at the serializer and
+# it determines which fields we're going to accept in the request that we
+# make to the api and it provides them here for us in the handy browsable api view
