@@ -1,8 +1,17 @@
 from rest_framework.views import APIView                                        # we installed rest_framework.views module in our requirements.txt file
 from rest_framework.response import Response                                    # Response object returns responses from APIView so when we call the APIView we expect the standard Response object to be returned
 from rest_framework import status                                               # the status object from rest framework is a list of handy HTTP codes that we can use when returning responses from our API... we use them in POST handler
-from profiles_api import serializer                                             # serializers is the module that we created in our profiles API project... by this we're going to tell our API view what data to expect when making post, put and patch requests
 from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication                   # the token authentication is going to be the type of
+                                                                                # authentication we use for users to authenticate themselves with our API it
+                                                                                # works by generating a random token string when the user logs in and then
+                                                                                # every request we make to their API that we need to authenticate we add this
+                                                                                # token string to the request and that's effectively a password to check that
+                                                                                # every request made is authenticated correctly
+
+from profiles_api import serializer                                             # serializers is the module that we created in our profiles API project... by this we're going to tell our API view what data to expect when making post, put and patch requests
+from profiles_api import models
+from profiles_api import permissions
 
 
 # now we create the APIView class:
@@ -150,3 +159,49 @@ class HelloViewSet(viewsets.ViewSet):                                           
 # serializer class to the top of our view set and it looks at the serializer and
 # it determines which fields we're going to accept in the request that we
 # make to the api and it provides them here for us in the handy browsable api view
+
+
+# unlike the API view we don't actually see the put patch and delete
+# methods here on the hello view set API that's because view sets expect that we
+# will use this endpoint to retrieve a list of objects in the database and we
+# will specify a primary key ID in the URL when making changes to a specific object
+# so if we want to see these additional functions that we added we need to add
+# something to the end of the URL... now in this case, because we aren't actually
+# retrieving any real objects it doesn't matter what we type but if we just put
+# a number there that would represent a primary key of an object that we wanted to
+# change and hit enter then it will change the page to the get request which is the
+# retrieve of that object so when we specify a primary key to a view set URL
+# it calls the retrieve function and as we can see in our retrieve function
+
+# if you want to do a partial update then you need to click on the raw data tab here and then
+# you can see you get the put and patch options if you click on patch it returns
+# the HTTP method patch and that's because that's what we returned from our partial
+# update function that we defined
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):                                # the model view set is very similar to a standard view set
+    """Handle creating and updating profiles"""                                 # except it's specifically designed for managing models through
+                                                                                # our API so it has a lot of the functionality that we
+                                                                                # need for managing models built into it
+    serializer_class = serializer.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()                                 # we're provideing the query set then Django rest framework can figure out the name from the model that's assigned to it
+
+# the way we use a model view set is we connect it up to a
+# serializer class just like we would a regular view set and you provide a query
+# set to the model view set so it knows which objects in the database are going
+# to be managed through this view set
+
+    authentication_classes = (TokenAuthentication,)                             # we can configure one or more types of
+                                                                                # authentication with a particular view set in the Django rest framework the way
+                                                                                # it works is we just add all the authentication classes to this
+                                                                                # authentication classes class variable
+
+    permission_classes = (permissions.UpdateOwnProfile,)
+
+# the authentication class is set how the user will authenticate
+# the permission classes is set how the user
+# gets permission to do certain things
+
+# every request that gets made it gets passed through our permissions.py file
+# and it checks "has-object-permissions" function to see whether the
+# user has permissions to perform the action they're trying to perform

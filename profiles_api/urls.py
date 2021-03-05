@@ -4,9 +4,14 @@ from rest_framework.routers import DefaultRouter
 from profiles_api import views
 
 router = DefaultRouter()                                                        # we assign the router to a variable
-router.register('hello-viewset', views.HelloViewSet, basename='hello-viewset') # then we register specific view sets with our router
+router.register('hello-viewset', views.HelloViewSet, basename='hello-viewset')  # then we register specific view sets with our router
                                                                                 # this is going to be used for retrieving the URLs in our router if we
                                                                                 # ever need to do that using the URL retrieving function provided by Django
+router.register('profile',views.UserProfileViewSet)                             # unlike the hello view set that we've registered above we don't
+                                                                                # need to specify a base name argument and this is because we have in our
+                                                                                # view set a query set object
+
+
 
 urlpatterns = [
     path('hello-view/',views.HelloApiView.as_view()),
