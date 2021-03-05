@@ -2,6 +2,9 @@ from rest_framework.views import APIView                                        
 from rest_framework.response import Response                                    # Response object returns responses from APIView so when we call the APIView we expect the standard Response object to be returned
 from rest_framework import status                                               # the status object from rest framework is a list of handy HTTP codes that we can use when returning responses from our API... we use them in POST handler
 from rest_framework import viewsets
+from rest_framework import filters                                              # we can use it to add filtering to a view set by in the user profile view set below the permissions classes list
+                                                                                # we add a new class variable called filter_backends
+
 from rest_framework.authentication import TokenAuthentication                   # the token authentication is going to be the type of
                                                                                 # authentication we use for users to authenticate themselves with our API it
                                                                                 # works by generating a random token string when the user logs in and then
@@ -205,3 +208,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):                                
 # every request that gets made it gets passed through our permissions.py file
 # and it checks "has-object-permissions" function to see whether the
 # user has permissions to perform the action they're trying to perform
+
+    filter_backends = (filters.SearchFilter,)                                 # it will add a filter back end and we can add one or more filter back ends to a particular
+    search_fields = ('name', 'email',)                                          # view set we're going to add a filter back end for the search filter
+                                                                                # then we'll specify the search fields name and email this will mean that the Django rest framework will
+                                                                                # allow us to search for items in this view set by the name or email field
