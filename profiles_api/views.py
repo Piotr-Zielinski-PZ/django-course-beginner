@@ -12,6 +12,11 @@ from rest_framework.authentication import TokenAuthentication                   
                                                                                 # token string to the request and that's effectively a password to check that
                                                                                 # every request made is authenticated correctly
 
+from rest_framework.authtoken.views import ObtainAuthToken                      # we're going to use token authentication it works by generating a token which is like a
+                                                                                # random string when we log in and then every request we make to the API that
+                                                                                # we wish to authenticate we include this token in the headers
+from rest_framework.settings import api_settings
+
 from profiles_api import serializer                                             # serializers is the module that we created in our profiles API project... by this we're going to tell our API view what data to expect when making post, put and patch requests
 from profiles_api import models
 from profiles_api import permissions
@@ -209,7 +214,20 @@ class UserProfileViewSet(viewsets.ModelViewSet):                                
 # and it checks "has-object-permissions" function to see whether the
 # user has permissions to perform the action they're trying to perform
 
-    filter_backends = (filters.SearchFilter,)                                 # it will add a filter back end and we can add one or more filter back ends to a particular
+    filter_backends = (filters.SearchFilter,)                                   # it will add a filter back end and we can add one or more filter back ends to a particular
     search_fields = ('name', 'email',)                                          # view set we're going to add a filter back end for the search filter
                                                                                 # then we'll specify the search fields name and email this will mean that the Django rest framework will
                                                                                 # allow us to search for items in this view set by the name or email field
+
+class UserLoginApiView(ObtainAuthToken):
+    """Handling creating user authentication tokens"""
+
+# obtain auth token class that is provided by the Django rest framework
+# is really handy and we could just add it
+# directly to a URL in the URLs.py file however it doesn't by default
+# enable itself in the browsable Django admin site so we need to override this
+# class and customize it so it's visible in the browsable api so it makes it
+# easier for us to test so what we need to do is add a class variable here:
+
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES                    # it adds the renderer classes to our obtain auth token view
+                                                                                # which will enable it in the Django admin

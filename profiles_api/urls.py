@@ -15,6 +15,7 @@ router.register('profile',views.UserProfileViewSet)                             
 
 urlpatterns = [
     path('hello-view/',views.HelloApiView.as_view()),
+    path('login/', views.UserLoginApiView.as_view()),
     path('', include(router.urls)),                                             # as we register new routes with our router it generates a list of URLs that
 ]                                                                               # are associated for our view set...                                                                               # it figures out the URLs that are required
                                                                                 # for all of the functions that we add to our view set and then it
