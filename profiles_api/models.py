@@ -4,7 +4,7 @@ from django.contrib.auth.models import PermissionsMixin                         
 from django.contrib.auth.models import BaseUserManager                          # default manager module that comes with django
 # these are standard base classes that we neet to use when overwriting or
 # costumizing the default django module
-
+from django.conf import settings                                                # this is used to retrieve settings from our settings.py
 
 class UserProfileManager(BaseUserManager):                                      # we create manager to let the django know how to work with custom made user model in django commandline tools (such as superuser command)
     """Manager for user profiles"""                                             # because we customized our user model we need to tell django how to interact with this user model in order to create users
@@ -73,3 +73,38 @@ class UserProfile(AbstractBaseUser,PermissionsMixin):                           
     def __str__(self):
         """Return string representation of our user"""
         return self.email                                                       # it is recommended for all django models
+
+
+class ProfileFeedItem(models.Model):                                            # this is going to be the model we use to allow users to
+    """Profiles status update"""                                                # store status updates in the system so every time they create a new update it's
+                                                                                # going to create a new profile feed item object and associate that object with
+                                                                                # the user that created it
+# the way we link models to other models in Django is
+# we use what's called a foreign key when we use the foreign key field it sets up
+# a foreign key relationship in the database to a remote model
+# the benefit of doing this is that it allows us to ensure that the integrity
+# of the database is maintained so we can never create a profile feed item for a
+# user profile that doesn't exist
+
+    user_profile = models.ForeignKey(                                           # the first argument of a foreign key
+        settings.AUTH_USER_MODEL,                                               # field in models is the name of the model that is the remote model for this foreign key
+        # it will retrieve the value
+        # from the author user model setting in our settings.py file so if we ever
+        # swap this auth user model to a different model then the relationships
+        # will automatically be updated without us having to go through and manually change
+        # it everywhere that we've referenced it in our models.py file
+        on_delete=models.CASCADE
+        # it tells Django or it
+        # tells the database what to do if the remote field is deleted
+        # database needs to know what happens if we remove a user profile what should
+        # happen to the profile feed items that are associated with it and the way we
+        # do that is by specifying on_delete
+    )
+    status_text = models.CharField(max_length=255)                              # it's used to contain the text of the feed update
+    created_on = models.DateTimeField(auto_now_add=True)                        # every time we create a new feed item automatically add the date time stamp that the item was
+                                                                                # created so we don't need to manually set this when we're creating the item it will
+                                                                                # automatically be set to the current time because of this auto now add parameter
+    def __str__(self):
+        """Return the model as a string"""                                      # string representation of our model so that is
+                                                                                # to tell Python what to do when we convert a model instance into a string
+        return self.status_text

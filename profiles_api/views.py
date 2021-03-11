@@ -16,8 +16,10 @@ from rest_framework.authtoken.views import ObtainAuthToken                      
                                                                                 # random string when we log in and then every request we make to the API that
                                                                                 # we wish to authenticate we include this token in the headers
 from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticated
 
-from profiles_api import serializer                                             # serializers is the module that we created in our profiles API project... by this we're going to tell our API view what data to expect when making post, put and patch requests
+
+from profiles_api import serializers                                             # serializers is the module that we created in our profiles API project... by this we're going to tell our API view what data to expect when making post, put and patch requests
 from profiles_api import models
 from profiles_api import permissions
 
@@ -32,7 +34,7 @@ class HelloApiView(APIView):                                                    
                                                                                 # with calling the appropriate function in the view for http request that we make.
 
 
-    serializer_class = serializer.HelloSerializer                              # this configures our API view to have the serializer class that we created lately
+    serializer_class = serializers.HelloSerializer                              # this configures our API view to have the serializer class that we created lately
 
 
     def get(self, request,format=None):                                         # GET FUNCTION - is typically used to retrive a list of object or a specific object, so whenever we make HTTP GET request to the URL
@@ -65,7 +67,7 @@ class HelloApiView(APIView):                                                    
 
                                                                                 # IF INPUT IS VALID
         if serializer.is_valid():                                               # serializer validate the input... it ensures that the input s valid to the specification (in our case we're gonna be validatinf if the input is no longer than 10 characters)
-            name = serializer.validated_data.get('name')                        # we want to retrive the name field from validated data
+            name = serializers.validated_data.get('name')                        # we want to retrive the name field from validated data
                                                                                 # this way we can retrive any data that we define in serializer.py
             message = f'Hello {name}'                                           # we're going to create a
                                                                                 # new message and this message we're just going to return a message from our API
@@ -112,7 +114,7 @@ class HelloViewSet(viewsets.ViewSet):                                           
     """Test API ViewSet"""                                                      # for a view set we add functions that represent actions that we would perform on a typical API
 
 
-    serializer_class = serializer.HelloSerializer                               # we're adding the serializer class and we can use the same serializer that we created
+    serializer_class = serializers.HelloSerializer                               # we're adding the serializer class and we can use the same serializer that we created
                                                                                 # for our API view with the name field we can share the same serializer for both
                                                                                 # of our view sets and we specify the serializer in our view set the same way as we do for our API view
 
@@ -133,7 +135,7 @@ class HelloViewSet(viewsets.ViewSet):                                           
         serializer = self.serializer_class(data=request.data)                   # we pass in the data that was made in the request and we passed that
                                                                                 # in as the data attribute of our serializer which we retrieve using the serializer class
         if serializer.is_valid():
-            name = serializer.validated_data.get('name')                        # we retrieve the name field
+            name = serializers.validated_data.get('name')                        # we retrieve the name field
             message = f'hello {name}!'
             return Response({'message': message})
         else:
@@ -191,7 +193,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):                                
     """Handle creating and updating profiles"""                                 # except it's specifically designed for managing models through
                                                                                 # our API so it has a lot of the functionality that we
                                                                                 # need for managing models built into it
-    serializer_class = serializer.UserProfileSerializer
+    serializer_class = serializers.UserProfileSerializer
     queryset = models.UserProfile.objects.all()                                 # we're provideing the query set then Django rest framework can figure out the name from the model that's assigned to it
 
 # the way we use a model view set is we connect it up to a
@@ -231,3 +233,30 @@ class UserLoginApiView(ObtainAuthToken):
 
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES                    # it adds the renderer classes to our obtain auth token view
                                                                                 # which will enable it in the Django admin
+
+
+class UserProfileFeedViewSet(viewsets.ModelViewSet):
+    """Handles creating, reading and updating profile feed items"""
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = serializers.ProfileFeedItemSerializer
+    queryset = models.ProfileFeedItem.objects.all()
+    permission_classes = (
+        permissions.UpdateOwnStatud,                                            # this will make sure that a
+        IsAuthenticated                                                         # user must be authenticated to perform any request that is not a read request
+    )                                                                           # so that will get rid of the issue of users trying to create a new feed item
+                                                                                # when they're not authenticated
+                                                                                # on top of that we'll also ensure that users can
+                                                                                # only update statuses where the user profile is assigned to their user which
+                                                                                # will stop users being able to update the statuses of other users in the system
+
+    def perform_create(self,serializer):
+        """Sets the user profile to the logged in user"""
+
+        # the perform create function is a handy feature of the Django rest framework that allows you to
+        # override the behavior or customize the behavior for creating objects through a
+        # Model View set so when a request gets made to our view set it gets passed into
+        # our serializer class and validated
+
+        serializer.save(user_profile=self.request.user)                         # when a new object is created Django
+                                                                                # rest framework calls perform create and it passes in the serializer that we're
+                                                                                # using to create the object

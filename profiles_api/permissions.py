@@ -34,4 +34,16 @@ class UpdateOwnProfile(permissions.BasePermission):                             
 # it to the object that is being updated and make sure they have the same ID
 # we do this by typing:
 
-        return obj.id == request.user.id 
+        return obj.id == request.user.id
+
+
+class UpdateOwnStatud (permissions.BasePermission):                             # this permission class is going to
+    """Allow users to update their own status"""                                # ensure that if a user is updating a status that it is a status that is assigned
+                                                                                # to their user account this way users can only update their own feed items in the database
+    def has_object_permission(self, request, view, obj):
+        """Check the user that is trying to update their own status"""
+        if request.method in permissions.SAFE_METHODS:                          # if the object that is being
+            return True                                                         # modified has a user profile.ID the same as the request.user.ID then
+                                                                                # this will return true and it will allow the permission through otherwise it will
+        return obj.user_profile.id == request.user.id                           # return false and it will block the request being made
+            

@@ -72,3 +72,21 @@ class UserProfileSerializer(serializers.ModelSerializer):                       
 # set_password() (which saves the password as a hash).
 # Once that's done, we use super().update() to pass the values to the existing
 # DRF update() method, to handle updating the remaining fields.
+
+
+
+class ProfileFeedItemSerializer(serializers.ModelSerializer):
+    """Serializes profile feed items"""
+
+    # we're going to set our model serializer to our
+    # profile feed item class
+
+    class Meta:
+        model = models.ProfileFeedItem
+
+    # this sets our serializer or our model serializer
+    # to our profile feed item model that we created in models.py
+
+        fields = ('id','user_profile','status_text','created_on')               # we need to make these fields available through our serializer
+        extra_kwargs = {'user_profile': {'read_only': True}}                    # we don't want one user to be able to
+                                                                                # create a new profile feed item and assign that to another user
