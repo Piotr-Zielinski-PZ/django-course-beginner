@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'tme)97#mz!@^!q5j)umhel&o$y8_v-)niifp)mx&_0^1mehgkg'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(os.environ.get('DEBUG',1)))
 
 ALLOWED_HOSTS = []
 
@@ -127,3 +127,6 @@ AUTH_USER_MODEL = 'profiles_api.UserProfile'                                    
                                                                                 # and then the name of the model that we wanna use
                                                                                 # so it tells django to look at our profiles_api app and then find the model called UserProfile
                                                                                 # and use this for all our authentication and user registration in our project
+
+
+STATIC_ROOT = 'static/'
